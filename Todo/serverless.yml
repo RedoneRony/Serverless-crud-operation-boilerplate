@@ -1,0 +1,75 @@
+service: serverless-reteam-rest-api-todo
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: arn:aws:dynamodb:ap-southeast-1:*:*
+
+resources:
+  Resources:
+    TodosTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: 'Reteam'
+
+functions:
+  create:
+    handler: src/todo/createTodo.createTodo
+    events:
+      - http:
+          path: todos
+          method: post
+          cors: true
+  list:
+    handler: src/todo/listTodo.listTodo
+    events:
+      - http:
+          path: todos
+          method: get
+          cors: true
+  get:
+    handler: src/todo/getTodo.getTodo
+    events:
+      - http:
+          path: todos/{id}
+          method: get
+          cors: true
+  update:
+    handler: src/todo/updateTodo.updateTodo
+    events:
+      - http:
+          path: todos/{id}
+          method: put
+          cors: true
+  delete:
+    handler: src/todo/deleteTodo.deleteTodo
+    events:
+      - http:
+          path: todos/{id}
+          method: delete
+          cors: true
